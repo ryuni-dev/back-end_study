@@ -9,20 +9,12 @@ router.get("/users", async (req, res) => {
 
 router.post("/users", async (req, res, next) => {
     try {
-        if (req.body.id === undefined) {
-            throw new InputError("'id' parameter is empty.");
-        }
         if (req.body.name === undefined) {
             throw new InputError("'name' parameter is empty.");
         }
 
-        const checkReview = await Review.findOne({ shopName: req.body.shopName });
-
-        if (checkReview) {
-            throw new DuplicateError("Review");
-        }
         const user = new User();
-        user.id = req.body.id;
+        user.UID = req.body.UID;
         user.name = req.body.name;
         user.birthday = req.body.birthday;
 
@@ -33,13 +25,13 @@ router.post("/users", async (req, res, next) => {
     }
 });
 
-router.get("/users/:id", async (req, res, next) => {
+router.get("/users/:UID", async (req, res, next) => {
     try {
-        if (isNaN(parseInt(req.params.id))) {
-            throw new InputError("Invalid review id.");
+        if (isNaN(parseInt(req.params.UID))) {
+            throw new InputError("Invalid UID.");
         }
-        const targetUser = await User.findOne({ id: req.params.id });
-        if (!userReview) {
+        const targetUser = await User.findOne({ UID: req.params.UID });
+        if (!targetUser) {
             throw new NotFoundError("User");
         }
         res.status(200).send(targetUser);
@@ -48,10 +40,10 @@ router.get("/users/:id", async (req, res, next) => {
     }
 });
 
-router.put("/users/:id", async (req, res, next) => {
+router.put("/users/:UID", async (req, res, next) => {
     try {
-        if (isNaN(parseInt(req.params.id))) {
-            throw new InputError("Invalid user id.");
+        if (isNaN(parseInt(req.params.UID))) {
+            throw new InputError("Invalid UID.");
         }
         if (req.body.name === undefined) {
             throw new InputError("'name' parameter is empty.");
@@ -60,11 +52,11 @@ router.put("/users/:id", async (req, res, next) => {
             throw new InputError("'birthday' parameter is empty.");
         }
 
-        const targetUser = await User.findOne({ id: req.params.id });
+        const targetUser = await User.findOne({ UID: req.params.UID });
         if (!targetUser) {
             throw new NotFoundError("User");
         }
-        targetUser.id = req.body.id;
+        //targetUser.id = req.body.id;
         targetUser.name = req.body.name;
         targetUser.birthday = req.body.birthday;
 
@@ -75,18 +67,18 @@ router.put("/users/:id", async (req, res, next) => {
     }
 });
 
-router.delete("/users/:id", async (req, res, next) => {
+router.delete("/users/:UID", async (req, res, next) => {
     try {
-        if (isNaN(parseInt(req.params.id))) {
-            throw new InputError("Invalid user id.");
+        if (isNaN(parseInt(req.params.UID))) {
+            throw new InputError("Invalid UID.");
         }
-        const targetUser = await User.findOne({ id: req.params.id });
+        const targetUser = await User.findOne({ UID: req.params.UID });
         if (!targetUser) {
             throw new NotFoundError("User");
         }
-        const deleteUser = await User.deleteOne({ id: req.params.id });
+        const deleteUser = await User.deleteOne({ UID: req.params.UID });
         if (deleteUser.deletedCount === 1) {
-            res.status(200).send({ id: targetUser.id, shopName: targetUser.name, author: targetUser.birthday });
+            res.status(200).send({ UID: targetUser.UID, name: targetUser.name, birthday: targetUser.birthday });
         } else {
             throw new NotFoundError("User");
         }
@@ -95,9 +87,4 @@ router.delete("/users/:id", async (req, res, next) => {
     }
 });
 
-router.use(function (err, req, res, next) {
-    if (res.headersSent) {
-        return next(err);
-    }
-    res.status(err.status).json({ message: err.message });
-});
+module.exports = router;
